@@ -16,11 +16,14 @@ void init_grid() {
 	grid->z_end = 50.0;
 }
 
+void run_tests();
+
 int main(void) {
 	init_grid();
+	run_tests();
 	// Some hardcoded values for testing for now.
-	struct sphere_s s2 = { -1.0, 1.0, -1.0, 20.0, 10.0, 10.0, 1 };
-	struct sphere_s s1 = { 0.0, 1.0, -1.0, 10, 10.0, 10.0, 1 };
+	struct sphere_s s2 = { { -1.0, 1.0, -1.0 }, { 20.0, 10.0, 10.0 }, 1.0, 1.0 };
+	struct sphere_s s1 = { { 0.0, 1.0, -1.0 }, { 10.0, 10.0, 10.0 }, 1.0, 1.0 };
 	bool collide = false;
 	double t1 = find_collision_time_spheres(&s1, &s2, &collide);
 	double t2 = find_collision_time_grid(&s1);

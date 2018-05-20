@@ -3,21 +3,7 @@
 
 #include "collision.h"
 #include "grid.h"
-
-static double get_xyz_vector_magnitude(double x, double y, double z) {
-	return sqrt((x*x) + (y*y) + (z*z));
-}
-
-// Given two sets of xyz values returns the dot product
-static double get_xyz_vector_dot_product(double x1, double x2, double y1, double y2, double z1, double z2) {
-	return (x1 * x2) + (y1 * y2) + (z1 * z2);
-}
-
-// Given the already computed dot product returns the angle between two xyz vectors.
-static double get_shortest_angle_between_xyz_vectors(double dp, double mag1, double mag2) {
-	double cos_inv = dp / (mag1 * mag2);
-	return acos(cos_inv);
-}
+#include "vector_3.h"
 
 // Finds the time at which the two spheres will collide.
 // If the spheres will not collide on their current paths then returns 0 and 
@@ -39,17 +25,13 @@ static double get_shortest_angle_between_xyz_vectors(double dp, double mag1, dou
 // distance will very likely be when the spheres pass through one another.
 // Trigonometry is used to figure out where the spheres collide.
 // TODO: better comments on trig part
-double find_collision_time_spheres(struct sphere_s *s1, struct sphere_s *s2, bool *collide) {
-	double x_rel_vel = s1->x_vel - s2->x_vel;
-	double y_rel_vel = s1->y_vel - s2->y_vel;
-	double z_rel_vel = s1->z_vel - s2->z_vel;
-	double x_rel_pos = s2->x_pos - s1->x_pos;
-	double y_rel_pos = s2->y_pos - s1->y_pos;
-	double z_rel_pos = s2->z_pos - s1->z_pos;
-	double dp = get_xyz_vector_dot_product(x_rel_vel, x_rel_pos, y_rel_vel, y_rel_pos, z_rel_vel, z_rel_pos);
-	double vel_vec_mag = get_xyz_vector_magnitude(x_rel_vel, y_rel_vel, z_rel_vel);
-	double pos_vec_mag = get_xyz_vector_magnitude(x_rel_pos, y_rel_pos, z_rel_pos);
-	double angle = get_shortest_angle_between_xyz_vectors(dp, vel_vec_mag, pos_vec_mag);
+double find_collision_time_spheres(const struct sphere_s *s1, const struct sphere_s *s2, bool *collide) {
+	struct vector_3_s rel_vel = { s1->vel.x - s2->vel.x, s1->vel.y - s2->vel.y, s1->vel.z - s2->vel.z };
+	struct vector_3_s rel_pos = { s2->pos.x - s1->pos.x, s2->pos.y - s1->pos.y, s2->pos.z - s1->pos.z };
+	double dp = get_vector_3_dot_product(&rel_vel, &rel_pos);
+	double vel_vec_mag = get_vector_3_magnitude(&rel_vel);
+	double pos_vec_mag = get_vector_3_magnitude(&rel_pos);
+	double angle = get_shortest_angle_between_vector_3(dp, vel_vec_mag, pos_vec_mag);
 	if (angle >= 3.14159265358979323846 / 2.0) { //check if >= 90 degrees (note angle is in radians)
 		*collide = false;
 		return 0;
@@ -69,7 +51,7 @@ double find_collision_time_spheres(struct sphere_s *s1, struct sphere_s *s2, boo
 
 // Finds the time taken to cross the boundary on the specified axis in the grid.
 // axis_vel and axis_pos are the velocity/position of the sphere on that axis.
-static double find_time_to_cross_boundary(double bound_start, double bound_end, double axis_vel, double axis_pos, double radius) {
+static double find_time_to_cross_boundary(const double bound_start, const double bound_end, const double axis_vel, const double axis_pos, const double radius) {
 	double dist = 0;
 	if (axis_vel > 0) {
 		dist = bound_end - axis_pos - radius;
@@ -80,19 +62,19 @@ static double find_time_to_cross_boundary(double bound_start, double bound_end, 
 }
 
 // Finds the time when the sphere will collide with the grid on its current path.
-double find_collision_time_grid(struct sphere_s *s) {
+double find_collision_time_grid(const struct sphere_s *s) {
 	double time = DBL_MAX;
-	if (s->x_vel != 0) {
-		time = find_time_to_cross_boundary(grid->x_start, grid->x_end, s->x_vel, s->x_pos, s->radius);
+	if (s->vel.x != 0) {
+		time = find_time_to_cross_boundary(grid->x_start, grid->x_end, s->vel.x, s->pos.x, s->radius);
 	}
-	if (s->y_vel != 0) {
-		double y_time = find_time_to_cross_boundary(grid->y_start, grid->y_end, s->y_vel, s->y_pos, s->radius);
+	if (s->vel.y != 0) {
+		double y_time = find_time_to_cross_boundary(grid->y_start, grid->y_end, s->vel.y, s->pos.y, s->radius);
 		if (y_time < time) {
 			time = y_time;
 		}
 	}
-	if (s->z_vel != 0) {
-		double z_time = find_time_to_cross_boundary(grid->z_start, grid->z_end, s->z_vel, s->z_pos, s->radius);
+	if (s->vel.z != 0) {
+		double z_time = find_time_to_cross_boundary(grid->z_start, grid->z_end, s->vel.z, s->pos.z, s->radius);
 		if (z_time < time) {
 			time = z_time;
 		}
