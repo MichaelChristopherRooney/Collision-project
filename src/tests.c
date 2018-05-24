@@ -46,7 +46,7 @@ static void test_1(char *test_name) {
 	double energy_before = (0.5 * (s1.vel.x * s1.vel.x) * s1.mass) + (0.5 * (s2.vel.x * s2.vel.x) * s2.mass);
 	update_sphere_position(&s1, t);
 	update_sphere_position(&s2, t);
-	apply_bounce(&s1, &s2);
+	apply_bounce_between_spheres(&s1, &s2);
 	if (s1.vel.x != -1.0) {
 		printf("%s: FAILED. After collision sphere one should have x velocity of -1.0 but instead has %f\n", test_name, s1.vel.x);
 		return;
@@ -59,9 +59,11 @@ static void test_1(char *test_name) {
 	double energy_after = (0.5 * (s1.vel.x * s1.vel.x) * s1.mass) + (0.5 * (s2.vel.x * s2.vel.x) * s2.mass);
 	if (momentum_before != momentum_after) {
 		printf("%s: FAILED. After collision momentum was not conserved\n", test_name);
+		return;
 	}
 	if (momentum_before != momentum_after) {
 		printf("%s: FAILED. After collision energy was not conserved\n", test_name);
+		return;
 	}
 	printf("%s: PASSED.\n", test_name);
 }
