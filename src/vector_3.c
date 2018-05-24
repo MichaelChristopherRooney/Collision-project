@@ -16,3 +16,10 @@ double get_shortest_angle_between_vector_3(const double dp, const double mag1, c
 	double cos_inv = dp / (mag1 * mag2);
 	return acos(cos_inv);
 }
+
+void normalise_vector_3(struct vector_3_s *v) {
+	double mag = get_vector_3_magnitude(v);
+	v->x = v->x / mag;
+	v->y = v->y / mag;
+	v->z = v->z / mag;
+}

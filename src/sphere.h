@@ -13,3 +13,5 @@ struct sphere_s {
 	double radius;
 	double mass;
 };
+
+void update_sphere_position(struct sphere_s *s, double t);

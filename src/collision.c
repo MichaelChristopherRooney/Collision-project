@@ -5,6 +5,7 @@
 #include "grid.h"
 #include "vector_3.h"
 
+// Adapted from: https://www.gamasutra.com/view/feature/131424/pool_hall_lessons_fast_accurate_.php?page=2
 // Finds the time at which the two spheres will collide.
 // If the spheres will not collide on their current paths then returns 0 and 
 // sets the collide parameter to false.
@@ -40,7 +41,7 @@ double find_collision_time_spheres(const struct sphere_s *s1, const struct spher
 	double shortest_dist = sin(angle) * pos_vec_mag;
 	if (shortest_dist > r_total) {
 		*collide = false;
-		return false;
+		return 0;
 	}
 	double d = sqrt((pos_vec_mag * pos_vec_mag) - (shortest_dist * shortest_dist));
 	double t = sqrt((r_total * r_total) - (shortest_dist * shortest_dist));
@@ -62,22 +63,46 @@ static double find_time_to_cross_boundary(const double bound_start, const double
 }
 
 // Finds the time when the sphere will collide with the grid on its current path.
-double find_collision_time_grid(const struct sphere_s *s) {
+// Collide will default to false, and will stay false if the sphere is stationary
+double find_collision_time_grid(const struct sphere_s *s, bool *collide) {
 	double time = DBL_MAX;
+	*collide = false;
 	if (s->vel.x != 0) {
+		*collide = true;
 		time = find_time_to_cross_boundary(grid->x_start, grid->x_end, s->vel.x, s->pos.x, s->radius);
 	}
 	if (s->vel.y != 0) {
+		*collide = true;
 		double y_time = find_time_to_cross_boundary(grid->y_start, grid->y_end, s->vel.y, s->pos.y, s->radius);
 		if (y_time < time) {
 			time = y_time;
 		}
 	}
 	if (s->vel.z != 0) {
+		*collide = true;
 		double z_time = find_time_to_cross_boundary(grid->z_start, grid->z_end, s->vel.z, s->pos.z, s->radius);
 		if (z_time < time) {
 			time = z_time;
 		}
 	}
 	return time;
+}
+
+// For details on how this works see:
+// https://www.gamasutra.com/view/feature/131424/pool_hall_lessons_fast_accurate_.php?page=3
+void apply_bounce_between_spheres(struct sphere_s *s1, struct sphere_s *s2) {
+	struct vector_3_s rel_pos = { s1->pos.x - s2->pos.x, s1->pos.y - s2->pos.y, s1->pos.z - s2->pos.z };
+	normalise_vector_3(&rel_pos);
+	double dp1 = get_vector_3_dot_product(&rel_pos, &s1->vel);
+	double dp2 = get_vector_3_dot_product(&rel_pos, &s2->vel);
+	double p = (2.0 * (dp1 - dp2)) / (s1->mass + s2->mass);
+	// Sphere one first
+	s1->vel.x = s1->vel.x - (p * s2->mass * rel_pos.x);
+	s1->vel.y = s1->vel.y - (p * s2->mass * rel_pos.y);
+	s1->vel.z = s1->vel.z - (p * s2->mass * rel_pos.z);
+	// Now sphere two
+	s2->vel.x = s2->vel.x + (p * s1->mass * rel_pos.x);
+	s2->vel.y = s2->vel.y + (p * s1->mass * rel_pos.y);
+	s2->vel.z = s2->vel.z + (p * s1->mass * rel_pos.z);
+	int a = 0;
 }
