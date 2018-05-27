@@ -30,6 +30,9 @@
     <ClCompile Include="src\sphere.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\grid.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\sphere.h">

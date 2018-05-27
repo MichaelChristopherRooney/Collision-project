@@ -1,3 +1,4 @@
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,24 +19,20 @@
 static void test_1(char *test_name) {
 	struct sphere_s s2 = { { -1.0, 0.0, 0.0 }, { 20.0, 10.0, 10.0 }, 1.0, 1.0 };
 	struct sphere_s s1 = { { 0.0, 0.0, 0.0 }, { 10.0, 10.0, 10.0 }, 1.0, 1.0 };
-	bool collide = false;
-	double t = find_collision_time_spheres(&s1, &s2, &collide);
-	if (collide == false) {
-		printf("%s: FAILED. Spheres will collide but result says they will not.\n", test_name);
-		return;
-	}
+	double t = find_collision_time_spheres(&s1, &s2);
 	if (t != 8.0) {
 		printf("%s: FAILED. Time of collision should be 8.0 but is %f\n", test_name, t);
 		return;
 	}
-	double gt = find_collision_time_grid(&s1, &collide);
-	if (collide == true) {
+	enum axis col_axis;
+	double gt = find_collision_time_grid(&s1, &col_axis);
+	if (col_axis != AXIS_NONE) {
 		printf("%s: FAILED. First sphere should NOT collide with grid, but result says it will.\n", test_name);
 		return;
 	}
-	gt = find_collision_time_grid(&s2, &collide);
-	if (collide == false) {
-		printf("%s: FAILED. Second sphere should collide with grid, but result says it will not.\n", test_name);
+	gt = find_collision_time_grid(&s2, &col_axis);
+	if (col_axis != X_AXIS) {
+		printf("%s: FAILED. Second sphere should collide with grid on x-axis, but result says it will not.\n", test_name);
 		return;
 	}
 	if (gt != 19.0) {

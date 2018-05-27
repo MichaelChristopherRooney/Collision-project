@@ -113,6 +113,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\collision.c" />
+    <ClCompile Include="src\grid.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\sphere.c" />
     <ClCompile Include="src\tests.c" />

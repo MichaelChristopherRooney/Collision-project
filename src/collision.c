@@ -7,8 +7,7 @@
 
 // Adapted from: https://www.gamasutra.com/view/feature/131424/pool_hall_lessons_fast_accurate_.php?page=2
 // Finds the time at which the two spheres will collide.
-// If the spheres will not collide on their current paths then returns 0 and 
-// sets the collide parameter to false.
+// If the spheres will not collide on their current paths then returns DBL_MAX.
 // Note this assumes that the velocity of both particles is constant before the collision.
 // Performs the following tests to see if the spheres will collide.
 // First test:
@@ -26,7 +25,7 @@
 // distance will very likely be when the spheres pass through one another.
 // Trigonometry is used to figure out where the spheres collide.
 // TODO: better comments on trig part
-double find_collision_time_spheres(const struct sphere_s *s1, const struct sphere_s *s2, bool *collide) {
+double find_collision_time_spheres(const struct sphere_s *s1, const struct sphere_s *s2) {
 	struct vector_3_s rel_vel = { s1->vel.x - s2->vel.x, s1->vel.y - s2->vel.y, s1->vel.z - s2->vel.z };
 	struct vector_3_s rel_pos = { s2->pos.x - s1->pos.x, s2->pos.y - s1->pos.y, s2->pos.z - s1->pos.z };
 	double dp = get_vector_3_dot_product(&rel_vel, &rel_pos);
@@ -34,19 +33,16 @@ double find_collision_time_spheres(const struct sphere_s *s1, const struct spher
 	double pos_vec_mag = get_vector_3_magnitude(&rel_pos);
 	double angle = get_shortest_angle_between_vector_3(dp, vel_vec_mag, pos_vec_mag);
 	if (angle >= 3.14159265358979323846 / 2.0) { //check if >= 90 degrees (note angle is in radians)
-		*collide = false;
-		return 0;
+		return DBL_MAX;
 	}
 	double r_total = s1->radius + s2->radius;
 	double shortest_dist = sin(angle) * pos_vec_mag;
 	if (shortest_dist > r_total) {
-		*collide = false;
-		return 0;
+		return DBL_MAX;
 	}
 	double d = sqrt((pos_vec_mag * pos_vec_mag) - (shortest_dist * shortest_dist));
 	double t = sqrt((r_total * r_total) - (shortest_dist * shortest_dist));
 	double dist_to_col = d - t;
-	*collide = true;
 	return  dist_to_col / vel_vec_mag;
 }
 
@@ -63,26 +59,31 @@ static double find_time_to_cross_boundary(const double bound_start, const double
 }
 
 // Finds the time when the sphere will collide with the grid on its current path.
-// Collide will default to false, and will stay false if the sphere is stationary
-double find_collision_time_grid(const struct sphere_s *s, bool *collide) {
+// "col_axis" will default to AXIS_NONE, and will keep that value if the sphere is stationary.
+// The time will be DBL_MAX if the sphere is stationary so that we can still
+// compare other times to see if they are sooner.
+// TODO: in the extremely unlikely event that the sphere perfectly hits a corner
+// of the grid then two iterations will be needed before it bounces properly - it
+// would be good if this could be handled in a single iteration instead. 
+double find_collision_time_grid(const struct sphere_s *s,enum axis *col_axis) {
 	double time = DBL_MAX;
-	*collide = false;
+	*col_axis = AXIS_NONE;
 	if (s->vel.x != 0) {
-		*collide = true;
 		time = find_time_to_cross_boundary(grid->x_start, grid->x_end, s->vel.x, s->pos.x, s->radius);
+		*col_axis = X_AXIS;
 	}
 	if (s->vel.y != 0) {
-		*collide = true;
 		double y_time = find_time_to_cross_boundary(grid->y_start, grid->y_end, s->vel.y, s->pos.y, s->radius);
 		if (y_time < time) {
 			time = y_time;
+			*col_axis = Y_AXIS;
 		}
 	}
 	if (s->vel.z != 0) {
-		*collide = true;
 		double z_time = find_time_to_cross_boundary(grid->z_start, grid->z_end, s->vel.z, s->pos.z, s->radius);
 		if (z_time < time) {
 			time = z_time;
+			*col_axis = Z_AXIS;
 		}
 	}
 	return time;
