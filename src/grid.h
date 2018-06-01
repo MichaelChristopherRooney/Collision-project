@@ -31,4 +31,4 @@ struct grid_s *grid; // The grid used by the simulation.
 struct sphere_s spheres[NUM_SPHERES];
 
 void init_grid();
-void update_grid();
+double update_grid();

@@ -1,13 +1,15 @@
 #include <stdio.h>
-#include <stdlib.h>
-
-#include "grid.h"
 
 void run_tests();
 
+void simulation_init();
+void simulation_run();
+void simulation_cleanup();
+
 int main(void) {
-	init_grid();
-	update_grid();
+	simulation_init();
+	simulation_run();
+	simulation_cleanup();
 	//run_tests();
 	printf("Press enter to exit...\n");
 	getchar();

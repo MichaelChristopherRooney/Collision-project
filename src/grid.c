@@ -11,7 +11,7 @@ struct sphere_s spheres[NUM_SPHERES] = {
 
 // Using hardcoded values for now
 void init_grid() {
-	grid = calloc(1, sizeof(grid));
+	grid = calloc(1, sizeof(struct grid_s));
 	grid->x_start = 0.0;
 	grid->y_start = 0.0;
 	grid->z_start = 0.0;
@@ -34,7 +34,7 @@ void init_grid() {
 // "col_sphere_1": First sphere in the soonest occuring collision.
 // "col_sphere_2": Second sphere, NULL if first sphere will collide with grid
 // "col_axis": If soonest collision is sphere on grid this stores the axis it occurs on.
-void update_grid() {
+double update_grid() {
 	double soonest_time = DBL_MAX; 
 	enum collision_type col_type = COL_NONE; 
 	enum AXIS col_axis = AXIS_NONE;
@@ -83,4 +83,5 @@ void update_grid() {
 	} else if (col_type == COL_TWO_SPHERES) {
 		apply_bounce_between_spheres(col_sphere_1, col_sphere_2);
 	}
+	return soonest_time;
 }
